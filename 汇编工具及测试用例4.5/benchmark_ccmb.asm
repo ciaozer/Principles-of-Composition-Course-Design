@@ -300,22 +300,123 @@ sort_next:
 # insert your ccmb benchmark program here!!!
 #############################################
 
-j benchmark_start       #delete this instruction for ccmb bencmark
+#j benchmark_start       #delete this instruction for ccmb bencmark
 #C1 instruction benchmark
+#SLLV移位测试    revise date:2018/3/12 tiger
+#依次输出  0x00000876 0x00008760 0x00087600 0x00876000 0x08760000 0x87600000 0x76000000 0x60000000 0x00000000
+
+.text
+
+addi $t0,$zero,1     
+addi $t1,$zero,3     
+addi $s1,$zero,  0x876     
+
+add $a0,$0,$s1           
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+
+addi $t3,$zero,8
+
+sllv_branch:
+sllv $s1,$s1,$t0     #测试指令
+sllv $s1,$s1,$t1     #测试指令
+add $a0,$0,$s1          
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+addi $t3,$t3, -1    
+bne $t3,$zero,sllv_branch
+
+addi   $v0,$zero,0x32         # system call for exit
+syscall                  # we are out of here.   
 
 
 
 #C2 instruction benchmark
+#SRAV移位测试    revise date:2018/3/12 tiger
+#依次输出  0x87600000 0xf8760000 0xff876000 0xfff87600 0xffff8760 0xfffff876 0xffffff87 0xfffffff8 0xffffffff
+
+.text
+
+addi $t0,$zero,1     #sllv 移位次数
+addi $t1,$zero,3     #sllv 移位次数
+addi $s1,$zero, 0x876     #
+sll $s1,$s1,20     #
+
+add $a0,$0,$s1           
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+
+addi $t3,$zero,8
+
+srav_branch:
+srav $s1,$s1,$t0     #先移1位
+srav $s1,$s1,$t1     #再移3位
+add $a0,$0,$s1          
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+addi $t3,$t3, -1    
+bne $t3,$zero,srav_branch   #循环8次
+
+addi   $v0,$zero,0x32         # system call for exit
+syscall                  # we are out of here.   
 
 
 
 #Mem instruction benchmark
+#SH 测试    revise date:2018/3/14 tiger
+.text
+
+addi $t1,$zero,0     #init_addr 
+addi $t3,$zero,32     #counter
+
+#SH写入 01,02,03,04
+addi $s1,$zero, 0x0001  #
+addi $s2,$zero, 0x01  #
+sh_store:
+sh $s1,($t1)
+add $a0,$0,$s1          
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+
+add $s1,$s1,$s2   #data +1
+addi $t1,$t1,2    # addr +4  
+addi $t3,$t3,-1   #counter
+bne $t3,$zero,sh_store
+
+
+addi $t3,$zero,16
+addi $t1,$zero,0    # addr 
+sh_branch:
+lw $s1,($t1)     
+add $a0,$0,$s1          
+addi $v0,$zero,34         # system call for print
+syscall                  # print
+addi $t1,$t1,4    
+addi $t3,$t3, -1    
+bne $t3,$zero,sh_branch
+
+addi   $v0,$zero,0x32         # system call for exit
+syscall                  # we are out of here.   
 
 
 
 
 #Branch instruction benchmark
+#blez 测试    小于等于零跳转     累加运算，从负数开始向零运算  revise date:2018/3/12 tiger  
+#依次输出0xfffffff1 0xfffffff2 0xfffffff3 0xfffffff4 0xfffffff5 0xfffffff6 0xfffffff7 0xfffffff8 0xfffffff9 0xfffffffa 0xfffffffb 0xfffffffc 0xfffffffd 0xfffffffe 0xffffffff 0x00000000
+.text
 
+addi $s1,$zero,-15       #初始值
+blez_branch:
+add $a0,$0,$s1          
+addi $v0,$zero,34         
+syscall                  #输出当前值
+addi $s1,$s1,1  
+blez $s1,blez_branch   
+
+
+addi   $v0,$zero,0x32         
+syscall                  # 暂停或退出
 
                  
  addi   $v0,$zero,10         # system call for exit
